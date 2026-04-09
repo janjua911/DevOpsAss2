@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Hassan Janjua's Task Board</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+      min-height: 100vh;
+      color: #fff;
+      padding: 20px;
+    }
+    header {
+      text-align: center;
+      padding: 40px 20px 20px;
+    }
+    header .brand {
+      font-size: 2.6rem;
+      font-weight: 800;
+      letter-spacing: 2px;
+    }
+    header .brand span { color: #a78bfa; }
+    header .subtitle {
+      color: #c4b5fd;
+      font-size: 1rem;
+      margin-top: 6px;
+      letter-spacing: 1px;
+    }
+    .badge {
+      display: inline-block;
+      background: #7c3aed;
+      color: #fff;
+      font-size: 0.75rem;
+      padding: 3px 12px;
+      border-radius: 20px;
+      margin-top: 8px;
+      letter-spacing: 1px;
+    }
+    .container { max-width: 720px; margin: 30px auto; }
+    .card {
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 20px;
+      backdrop-filter: blur(10px);
+    }
+    .card h2 { font-size: 1.1rem; color: #a78bfa; margin-bottom: 16px; }
+    input[type="text"], textarea {
+      width: 100%;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 10px;
+      padding: 10px 14px;
+      color: #fff;
+      font-size: 0.95rem;
+      margin-bottom: 10px;
+      outline: none;
+    }
+    input::placeholder, textarea::placeholder { color: #9ca3af; }
+    textarea { resize: vertical; min-height: 70px; }
+    button[type="submit"] {
+      background: #7c3aed;
+      color: white;
+      border: none;
+      padding: 10px 24px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 0.95rem;
+      transition: background 0.2s;
+    }
+    button[type="submit"]:hover { background: #6d28d9; }
+    .task-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 14px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 12px;
+      margin-bottom: 10px;
+      border-left: 4px solid #7c3aed;
+      transition: opacity 0.2s;
+    }
+    .task-item.done { border-left-color: #10b981; opacity: 0.6; }
+    .task-item.done .task-title { text-decoration: line-through; color: #9ca3af; }
+    .task-info { flex: 1; }
+    .task-title { font-weight: 600; font-size: 1rem; }
+    .task-desc { font-size: 0.85rem; color: #c4b5fd; margin-top: 4px; }
+    .task-meta { font-size: 0.75rem; color: #6b7280; margin-top: 6px; }
+    .task-actions { display: flex; flex-direction: column; gap: 6px; }
+    .btn-toggle, .btn-delete {
+      padding: 5px 12px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      font-size: 0.8rem;
+      transition: background 0.2s;
+    }
+    .btn-toggle { background: #1d4ed8; color: #fff; }
+    .btn-toggle:hover { background: #1e40af; }
+    .btn-delete { background: #dc2626; color: #fff; }
+    .btn-delete:hover { background: #b91c1c; }
+    .empty { text-align: center; color: #9ca3af; padding: 30px; font-size: 0.95rem; }
+    footer {
+      text-align: center;
+      color: #6b7280;
+      font-size: 0.8rem;
+      margin-top: 40px;
+      padding-bottom: 20px;
+    }
+    footer span { color: #a78bfa; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="brand">⚡ <span>Hassan Janjua</span>'s Task Board</div>
+  <div class="subtitle">DevOps for Cloud Computing · COMSATS University, Islamabad</div>
+  <div class="badge">🐳 Deployed via Docker on AWS EC2</div>
+</header>
+
+<div class="container">
+  <div class="card">
+    <h2>➕ Add New Task</h2>
+    <form action="/add" method="POST">
+      <input type="text" name="title" placeholder="Task title..." required />
+      <textarea name="description" placeholder="Description (optional)..."></textarea>
+      <button type="submit">Add Task</button>
+    </form>
+  </div>
+
+  <div class="card">
+    <h2>📋 My Tasks ({{ tasks|length }})</h2>
+    {% if tasks %}
+      {% for task in tasks %}
+      <div class="task-item {{ task.status }}">
+        <div class="task-info">
+          <div class="task-title">{{ task.title }}</div>
+          {% if task.description %}
+          <div class="task-desc">{{ task.description }}</div>
+          {% endif %}
+          <div class="task-meta">🕒 {{ task.created_at.strftime('%d %b %Y, %I:%M %p') }} &nbsp;|&nbsp;
+            {% if task.status == 'done' %}✅ Done{% else %}🔵 Pending{% endif %}
+          </div>
+        </div>
+        <div class="task-actions">
+          <a href="/toggle/{{ task.id }}">
+            <button class="btn-toggle">{% if task.status == 'done' %}↩ Undo{% else %}✔ Done{% endif %}</button>
+          </a>
+          <a href="/delete/{{ task.id }}">
+            <button class="btn-delete">🗑 Delete</button>
+          </a>
+        </div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div class="empty">No tasks yet. Add your first task above! 🚀</div>
+    {% endif %}
+  </div>
+</div>
+
+<footer>Built by <span>Hassan Hasni Janjua</span> · Containerized with Docker · Hosted on AWS EC2</footer>
+
+</body>
+</html>
