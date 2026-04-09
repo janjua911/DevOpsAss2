@@ -275,3 +275,5 @@ URLs to include:
 2. **Part II must be DOWN initially** — Jenkins will bring it up when triggered
 3. Add the instructor as GitHub collaborator so they can push to trigger the pipeline
 4. Make sure EC2 Security Group allows ports: **5000, 5001, 8080**
+
+TEST 1
