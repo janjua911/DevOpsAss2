@@ -1,0 +1,61 @@
+# ── Hassan Janjua's Task Board ──────────────────────────────
+# docker-compose.yml  →  Part I: Containerized Deployment
+# Course: DevOps for Cloud Computing | COMSATS University
+# Run:  docker compose up -d
+# Stop: docker compose down
+# ─────────────────────────────────────────────────────────────
+
+version: "3.9"
+
+services:
+
+  # ── Flask Web Application ──────────────────────────────────
+  web:
+    image: hassanjanjua/taskboard:latest   # image pushed to Docker Hub
+    container_name: hassan_taskboard_web
+    build: .                               # build from Dockerfile in this dir
+    ports:
+      - "5000:5000"
+    environment:
+      DB_HOST: db
+      DB_USER: hassan
+      DB_PASSWORD: hasni123
+      DB_NAME: taskboard
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - taskboard_net
+    restart: unless-stopped
+
+  # ── MySQL Database ─────────────────────────────────────────
+  db:
+    image: mysql:8.0
+    container_name: hassan_taskboard_db
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpass123
+      MYSQL_DATABASE: taskboard
+      MYSQL_USER: hassan
+      MYSQL_PASSWORD: hasni123
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql        # persistent volume for MySQL data
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uhassan", "-phasni123"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - taskboard_net
+    restart: unless-stopped
+
+# ── Named Volume (persistent DB storage) ──────────────────────
+volumes:
+  db_data:
+    driver: local
+
+# ── Internal Bridge Network ────────────────────────────────────
+networks:
+  taskboard_net:
+    driver: bridge

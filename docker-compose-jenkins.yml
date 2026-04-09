@@ -1,0 +1,66 @@
+# ── Hassan Janjua's Task Board ──────────────────────────────
+# docker-compose-jenkins.yml  →  Part II: Jenkins CI/CD Pipeline
+# Course: DevOps for Cloud Computing | COMSATS University
+# NOTE: Uses code volume (no Dockerfile build) + different ports
+# This file is used BY Jenkins — do not run manually
+# ─────────────────────────────────────────────────────────────
+
+version: "3.9"
+
+services:
+
+  # ── Flask Web Application (code mounted as volume) ─────────
+  web_jenkins:
+    image: python:3.11-slim
+    container_name: hassan_jenkins_web
+    working_dir: /app
+    volumes:
+      - ./:/app                         # mount cloned repo code as volume
+    command: >
+      sh -c "pip install --no-cache-dir -r requirements.txt &&
+             python app.py"
+    ports:
+      - "5001:5000"                     # different port from Part I
+    environment:
+      DB_HOST: db_jenkins
+      DB_USER: hassan
+      DB_PASSWORD: hasni123
+      DB_NAME: taskboard
+    depends_on:
+      db_jenkins:
+        condition: service_healthy
+    networks:
+      - jenkins_net
+    restart: unless-stopped
+
+  # ── MySQL Database ─────────────────────────────────────────
+  db_jenkins:
+    image: mysql:8.0
+    container_name: hassan_jenkins_db
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpass123
+      MYSQL_DATABASE: taskboard
+      MYSQL_USER: hassan
+      MYSQL_PASSWORD: hasni123
+    ports:
+      - "3307:3306"                     # different port from Part I
+    volumes:
+      - jenkins_db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uhassan", "-phasni123"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - jenkins_net
+    restart: unless-stopped
+
+# ── Named Volume ───────────────────────────────────────────────
+volumes:
+  jenkins_db_data:
+    driver: local
+
+# ── Network ────────────────────────────────────────────────────
+networks:
+  jenkins_net:
+    driver: bridge
