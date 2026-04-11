@@ -11,7 +11,7 @@ services:
 
   # ── Flask Web Application ──────────────────────────────────
   web:
-    image: hassanjanjua/taskboard:latest   # image pushed to Docker Hub
+    image: hassan911123/taskboard:latest   # image pushed to Docker Hub
     container_name: hassan_taskboard_web
     build: .                               # build from Dockerfile in this dir
     ports:
